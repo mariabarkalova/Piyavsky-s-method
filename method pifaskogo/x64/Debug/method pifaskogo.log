@@ -1,0 +1,16 @@
+﻿  method pifaskogo.cpp
+  ShekelProblem.cpp
+  IConstrainedOptProblem.cpp
+C:\Users\Василий Васильевич\Piyavsky-s-method\method pifaskogo\src\IConstrainedOptProblem.cpp(423,54): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\Василий Васильевич\Piyavsky-s-method\method pifaskogo\src\IConstrainedOptProblem.cpp(620,36): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\Василий Васильевич\Piyavsky-s-method\method pifaskogo\src\IConstrainedOptProblem.cpp(737,33): warning C4267: return: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\Василий Васильевич\Piyavsky-s-method\method pifaskogo\src\IConstrainedOptProblem.cpp(773,39): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+  IConstrainedOptProblemFamily.cpp
+  IGeneralOptProblem.cpp
+  IGeneralOptProblemFamily.cpp
+C:\Users\Василий Васильевич\Piyavsky-s-method\method pifaskogo\src\IGeneralOptProblemFamily.cpp(5,27): warning C4267: return: преобразование из "size_t" в "int"; возможна потеря данных
+  IOptProblem.cpp
+C:\Users\Василий Васильевич\Piyavsky-s-method\method pifaskogo\src\IOptProblem.cpp(30,36): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+  IOptProblemFamily.cpp
+  Создание кода...
+  method pifaskogo.vcxproj -> C:\Users\Василий Васильевич\Piyavsky-s-method\x64\Debug\method pifaskogo.exe
