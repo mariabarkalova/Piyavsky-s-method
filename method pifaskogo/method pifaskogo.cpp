@@ -3,53 +3,42 @@
 #include<vector>
 #include<algorithm>
 #include<iterator>
-
+#include <fstream>
 #include "sample_src/Shekel/ShekelProblem.hpp"
-
 using namespace std;
 
 class MethodPiyavsky {
     double L;
-    double epsilon; 
+    double epsilon;
     double a, b;
     vector<double> x_values;
     vector<double> z_values;
-    TShekelProblem *problem;
+    TShekelProblem* problem;
+    double min_x;
+    double min_value;
+    size_t point_count;
+    double true_opt_point;
+    double true_opt_value;
 public:
-    /*double objective_function(double x)
-    {
-        //double res = x*x;
-        //double res = 2 / (x * x) - 1 / x;
-        //double res = x * x - cos(18 * x);
-    }
-    double derivative(double x)
-    {
-        //return 2 * x;
-        //return 2 * x + sin(18 * x) * 18;
-    }*/
-
-    double objective_function(double x) 
+    double objective_function(double x)
     {
         return problem->ComputeFunction({ x });
     }
 
-    double derivative(double x) 
+    double derivative(double x)
     {
         return problem->ComputeFunctionDerivatives({ x })[0];
     }
 
     double lipschitz_constant(double a, double b)
     {
-        //double val1 = abs(derivative(a));
-        //double val2 = abs(derivative(b));
-        //return max(val1, val2);
         return problem->GetLipschitzConstant();
     }
 
-    MethodPiyavsky(double epsilon_, double a_=0, double b_=0) : epsilon(epsilon_), a(a_), b(b_)
+    MethodPiyavsky(double epsilon_, double a_ = 0, double b_ = 0, int function_number = 0) : epsilon(epsilon_), a(a_), b(b_)
     {
-        problem = new TShekelProblem();
-        if (a == 0 && b == 0) 
+        problem = new TShekelProblem(function_number);
+        if (a == 0 && b == 0)
         {
             vector<double> lb;
             vector<double> ub;
@@ -63,6 +52,24 @@ public:
 
         z_values.push_back(objective_function(a));
         z_values.push_back(objective_function(b));
+
+        vector<double> true_point = problem->GetOptimumPoint();
+        true_opt_point = true_point[0];
+        true_opt_value = problem->GetOptimumValue();
+    }
+
+    ~MethodPiyavsky()
+    {
+        delete problem;
+    }
+
+    void getResults(double& x_min, double& f_min, size_t& count, double& true_x, double& true_f)
+    {
+        x_min = min_x;
+        f_min = min_value;
+        count = point_count;
+        true_x = true_opt_point;
+        true_f = true_opt_value;
     }
 
     void algorithm()
@@ -71,16 +78,16 @@ public:
         {
             //Для (xi-1, xi) вычиcл R(i)
             vector<double> R_values;
-            for (size_t i = 1; i < x_values.size(); ++i) 
+            for (size_t i = 1; i < x_values.size(); ++i)
             {
                 double delta = x_values[i] - x_values[i - 1];
                 double R = 0.5 * L * delta - 0.5 * (z_values[i] + z_values[i - 1]);
                 R_values.push_back(R);
-            }     
+            }
 
             double max_val = R_values[0];
             size_t t = 0;
-            for (size_t i = 0;i < R_values.size(); i++) 
+            for (size_t i = 0;i < R_values.size(); i++)
             {
                 if (R_values[i] > max_val)
                 {
@@ -89,7 +96,7 @@ public:
                 }
             }
 
-            double x_k1 = (x_values[t] + x_values[t + 1]) / 2.0 - (z_values[t + 1] - z_values[t]) / (2.0 * L); 
+            double x_k1 = (x_values[t] + x_values[t + 1]) / 2.0 - (z_values[t + 1] - z_values[t]) / (2.0 * L);
             //double x_k1 = (x_values[t] + x_values[t - 1]) / 2.0 - (z_values[t] - z_values[t-1]) / (2.0 * L);
             double z_k1 = objective_function(x_k1);    // Зн-е функции в новой точке
 
@@ -100,77 +107,76 @@ public:
             z_values.insert(z_values.begin() + t + 1, z_k1);
 
             //условие остановки
-            if (x_values[t + 1] - x_values[t] <= epsilon) 
+            if (x_values[t + 1] - x_values[t] <= epsilon)
             {
                 size_t min_index = 0;
-                double min_value = z_values[0];
-                for (size_t i = 1; i < z_values.size(); i++) 
+                min_value = z_values[0];
+                for (size_t i = 1; i < z_values.size(); i++)
                 {
                     if (z_values[i] < min_value) {
                         min_value = z_values[i];
                         min_index = i;
                     }
                 }
-                double min_x = x_values[min_index];
+                min_x = x_values[min_index]; 
+                point_count = x_values.size();
+
+                /*double min_x = x_values[min_index];
                 cout << "Точка минимума x = " << min_x << endl;
-                cout <<"Кол-во точек:" << x_values.size() << endl;
-                double min_z = z_values[min_index];
-                cout << "Значение функции в точке: " << min_z << endl;
+                cout << "Кол-во точек: " << x_values.size() << endl;
+                cout << "Значение функции в точке: " << min_value << endl;
+
+                vector<double> true_opt_point = problem->GetOptimumPoint();
+                double true_opt_value = problem->GetOptimumValue();
+                cout << "Истинная точка минимума: " << true_opt_point[0] << endl;
+                cout << "Истинное значение функции: " << true_opt_value << endl;
+                cout << "Погрешность по x: " << abs(min_x - true_opt_point[0]) << endl;
+                cout << "Погрешность по f: " << abs(min_value - true_opt_value) << endl;
+                */
                 break;
             }
         }
     }
 };
 
-
-
-int main() 
+int main()
 {
     setlocale(LC_ALL, "Russian");
     TShekelProblem problem;
+    int function_number;
     double epsilon = 0.01;
     double a, b;
+    double min_x, min_value;
+    size_t point_count;
+    double true_x;
+    double true_f;
+    //cout << "Введите номер функции Шекеля (0-999): ";
+    //cin >> function_number;
     cout << "Введите левую границу интервала (a): ";
     cin >> a;
     cout << "Введите правую границу интервала (b): ";
     cin >> b;
-    MethodPiyavsky method(epsilon, a, b);
-    method.algorithm();
+    //MethodPiyavsky method(epsilon, a, b, function_number);
+    //method.algorithm();
 
+    ofstream file("results.csv");
+    if (!file.is_open())
+    {
+        cout << "Ошибка с файлом";
+        return 1;
+    }
+    file << "Номер ф-ции; Точка минимума; Знач ф-ции; Кол-во точек; Ист.знач.минимума; Ист.знач.ф-ции; Погрешность по x;Погрешность по f " << endl;
+    for (function_number = 0;function_number < 999;function_number++)
+    {
+        MethodPiyavsky method(epsilon, a, b, function_number);
+        method.algorithm();
+        method.getResults(min_x, min_value, point_count, true_x, true_f);
+        double error_x = abs(min_x - true_x);
+        double error_f = abs(min_value - true_f);
+        file << function_number << ";" << min_x << ";" << min_value << ";" << point_count << ";"<< true_x <<";"<< true_f<<";"<<error_x<<";"<<error_f<< endl;
+    }
+
+    file.close();
+    cout << "Файл успешно создан и заполнен";
     return 0;
-
 }
-
-
-
-
-/*int main()
-{
-    setlocale(LC_ALL, "Russian");
-    double epsilon = 0.001;
-    double a, b;
-
-    //cout << "Введите точность: ";
-    //cin >> epsilon;
-    cout << "Введите левую границу интервала (a): ";
-    cin >> a;
-    cout << "Введите правую границу интервала (b): ";
-    cin >> b;
-    MethodPiyavsky method(epsilon, a, b);
-    method.algorithm();
-
-    return 0;
-}*/
-/*int main()
-{
-    setlocale(LC_ALL, "Russian");
-    TShekelProblem problem;
-    vector<double> point = { 2.5 };
-    //double value = problem.Compute(0, point);
-    double value = problem.ComputeFunction(point);
-    cout << "Значение функции Шекеля в точке x = " << point[0] << " : " << value << "\n";
-
-    return 0;
-}*/
-
-
